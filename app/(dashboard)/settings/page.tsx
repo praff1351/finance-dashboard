@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useUserStore } from '@/stores/use-user-store'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -29,7 +29,13 @@ const ROLES: { value: Role; label: string; description: string; icon: React.Reac
 ]
 
 const SettingsPage = () => {
+    
     const { name, email, avatarUrl, role: storeRole, updateUser } = useUserStore()
+    const [localAvatar, setLocalAvatar] = useState<string | null>(avatarUrl);
+
+    useEffect(()=>{
+        setLocalAvatar(avatarUrl)
+    }, [avatarUrl]);
 
     const [formData, setFormData] = useState(() => ({
         name,
@@ -47,8 +53,25 @@ const SettingsPage = () => {
             toast.error('Please fill in all fields')
             return
         }
-        updateUser({ name: formData.name, email: formData.email, role: formData.role })
+        updateUser({ name: formData.name, email: formData.email, role: formData.role, avatarUrl:localAvatar })
         toast.success('Profile updated successfully')
+    }
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
+        const file = e.target.files?.[0]
+        if(!file) return;
+        
+        const reader = new FileReader()
+        reader.onloadend = ()=>{
+            const base64 = reader.result as string
+            setLocalAvatar(base64);
+            updateUser({avatarUrl: base64})
+        }
+        reader.readAsDataURL(file);
+    }
+
+    const handleAvatarRemove = ()=>{
+        setLocalAvatar(null);
     }
 
     const initials = formData.name
@@ -84,7 +107,9 @@ const SettingsPage = () => {
                     {/* Avatar Section */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-border shadow-sm">
-                            <AvatarImage src={avatarUrl} alt={name} />
+                            {localAvatar && (
+                                <AvatarImage src={localAvatar} alt={name}/>
+                            )}
                             <AvatarFallback className="text-base sm:text-lg bg-linear-to-br from-primary to-primary/80 text-primary-foreground font-bold">
                                 {initials}
                             </AvatarFallback>
@@ -96,13 +121,25 @@ const SettingsPage = () => {
                             </p>
 
                             <div className="flex flex-wrap gap-2">
-                                <Button variant="outline" size="sm" className="h-7 text-xs">
-                                    Change
-                                </Button>
+                                <label>
+                                    <input 
+                                    type='file'
+                                    accept='image/*'
+                                    className='hidden'
+                                    onChange={handleAvatarChange}
+                                    />
+                                    <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+
+                                        <span>
+                                            Change
+    </span> 
+    </Button>
+                                </label>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     className="h-7 text-xs text-red-500 hover:bg-red-50"
+                                    onClick={handleAvatarRemove}
                                 >
                                     Remove
                                 </Button>
