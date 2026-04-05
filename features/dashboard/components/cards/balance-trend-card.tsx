@@ -1,39 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { TimeRange, BalanceDataPoint } from "../../types/balance-types";
 import { TimeRangeTabs } from "../charts/time-range-tabs";
 import { TrendSummary } from "../shared/trend-summary";
 import { BalanceChart } from "../charts/balance-chart";
 import { ChartLegend } from "../charts/chart-legend";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle } from "lucide-react";
+import { useBalanceTrend } from "../../hooks/useBalanceTrend";
 
 export function BalanceTrendCard() {
     const [range, setRange] = useState<TimeRange>("1M");
+    const { data, isLoading, isError } = useBalanceTrend(range);
 
-    const { data, isLoading, isError, error } = useQuery<BalanceDataPoint[]>({
-        queryKey: ["balance-trend", range],
-        queryFn: async () => {
-            const response = await axios.get(`/api/balance?range=${range}`);
-            return response.data;
-        },
-    });
-
-    if (isLoading) {
-        return <BalanceTrendSkeleton />;
-    }
+    if (isLoading) return <BalanceTrendSkeleton />;
 
     if (isError) {
         return (
             <div className="bg-card rounded-2xl border border-destructive/30 p-8 flex flex-col items-center justify-center text-center">
-                <AlertCircle className="w-10 h-10 text-destructive mb-3" />
                 <h3 className="text-lg font-bold text-foreground">Failed to load data</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                    {(error as Error)?.message || "Something went wrong while fetching balance trend."}
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">Something went wrong.</p>
                 <button
                     onClick={() => window.location.reload()}
                     className="mt-4 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
@@ -62,12 +48,21 @@ export function BalanceTrendCard() {
 
                 <div className="flex flex-col items-end gap-3">
                     <TimeRangeTabs value={range} onChange={setRange} />
-                    {data && <TrendSummary data={data} />}
+                    {data && data.length > 0 && <TrendSummary data={data} />}
                 </div>
             </div>
 
-            {/* Chart */}
-            {data && <BalanceChart data={data} range={range} />}
+            {/* Empty state */}
+            {(!data || data.every(d => d.income === 0 && d.expenses === 0)) ? (
+                <div className="h-[180px] flex flex-col items-center justify-center text-center rounded-xl bg-muted/30">
+                    <p className="text-sm font-semibold text-foreground">No data yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Add transactions to see your balance trend.
+                    </p>
+                </div>
+            ) : (
+                <BalanceChart data={data} range={range} />
+            )}
 
             {/* Legend */}
             <div className="mt-4 pt-4 border-t border-border/60">

@@ -3,7 +3,7 @@
 import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Filter, XCircle } from 'lucide-react'
+import { Search, Filter, XCircle, ArrowUpDownIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface TransactionFiltersProps {
@@ -13,6 +13,8 @@ interface TransactionFiltersProps {
   onTypeChange: (value: string) => void
   category: string
   onCategoryChange: (value: string) => void
+  sortBy: string
+  onSortChange: (value: string) => void
   onClear: () => void
 }
 
@@ -23,9 +25,11 @@ export const TransactionFilters = ({
   onTypeChange,
   category,
   onCategoryChange,
+  sortBy, 
+  onSortChange,
   onClear,
 }: TransactionFiltersProps) => {
-  const isFiltered = search !== '' || type !== 'all' || category !== 'all'
+  const isFiltered = search !== '' || type !== 'all' || category !== 'all' || sortBy !== "date-desc"
 
   return (
     <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 bg-muted/30 p-4 rounded-xl border border-border/50">
@@ -55,13 +59,10 @@ export const TransactionFilters = ({
         </Select>
       </div>
 
-      <div className="w-full sm:w-[160px]">
+      <div className="w-full sm:w-[180px]">
         <Select value={category} onValueChange={onCategoryChange}>
           <SelectTrigger className="w-full h-10 bg-background border-border focus:ring-primary rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground font-medium italic">Category:</span>
-              <SelectValue placeholder="Category" />
-            </div>
+            <SelectValue placeholder="Any Category" />
           </SelectTrigger>
           <SelectContent className="rounded-lg shadow-md border-border">
             <SelectItem value="all">Any Category</SelectItem>
@@ -75,6 +76,24 @@ export const TransactionFilters = ({
           </SelectContent>
         </Select>
       </div>
+
+      <div className="w-full sm:w-[180px]">
+        <Select value={sortBy} onValueChange={onSortChange}>
+          <SelectTrigger className="w-full h-10 bg-background border-border focus:ring-primary rounded-lg shadow-sm">
+            <div className="flex items-center gap-2">
+              <ArrowUpDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue placeholder="Newest First" />
+            </div>
+          </SelectTrigger>
+          <SelectContent className="rounded-lg shadow-md border-border">
+            <SelectItem value="date-desc">Newest First</SelectItem>
+            <SelectItem value="date-asc">Oldest First</SelectItem>
+            <SelectItem value="amount-desc">Highest Amount</SelectItem>
+            <SelectItem value="amount-asc">Lowest Amount</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
 
       {isFiltered && (
         <Button

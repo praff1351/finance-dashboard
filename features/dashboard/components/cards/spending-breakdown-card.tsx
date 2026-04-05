@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { ChartView } from "../../types/spending-breakdown";
-import { SPENDING_DATA } from "../../data/spending-breakdown-data";
 import { ChartViewToggle } from "../charts/chart-view-toggle";
 import { DonutChart } from "../charts/donut-chart";
 import { BarChartView } from "../charts/bar-chart-view";
 import { CategoryLegend } from "../charts/category-legend";
 import { SpendingSummary } from "../shared/spending-summary";
+import { useSpendingBreakdown } from "../../hooks/useSpendingBreakdown";
 
 export function SpendingBreakdownCard() {
     const [view, setView] = useState<ChartView>("donut");
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    const data = useSpendingBreakdown();
+
+    const now = new Date();
+    const monthLabel = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
     return (
         <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
@@ -22,42 +26,56 @@ export function SpendingBreakdownCard() {
                         Spending Breakdown
                     </p>
                     <p className="text-lg font-bold text-foreground">Category Analysis</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Actual spend vs. budget — June 2025</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                        Actual spend vs. budget — {monthLabel}
+                    </p>
                 </div>
                 <ChartViewToggle value={view} onChange={setView} />
             </div>
 
-            {/* Summary KPIs */}
-            <div className="mb-5 pb-5 border-b border-border/60">
-                <SpendingSummary data={SPENDING_DATA} />
-            </div>
-
-            {/* Chart + Legend side by side */}
-            <div className="flex flex-col lg:flex-row gap-6 items-start">
-                <div className="w-full lg:w-[280px] shrink-0">
-                    {view === "donut" ? (
-                        <DonutChart
-                            data={SPENDING_DATA}
-                            activeIndex={activeIndex}
-                            onHover={setActiveIndex}
-                        />
-                    ) : (
-                        <BarChartView
-                            data={SPENDING_DATA}
-                            activeIndex={activeIndex}
-                            onHover={setActiveIndex}
-                        />
-                    )}
+            {data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <span className="text-3xl mb-3">🍩</span>
+                    <p className="text-sm font-semibold text-foreground">No spending data yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Add expense transactions to see your spending breakdown.
+                    </p>
                 </div>
+            ) : (
+                <>
+                    {/* Summary KPIs */}
+                    <div className="mb-5 pb-5 border-b border-border/60">
+                        <SpendingSummary data={data} />
+                    </div>
 
-                <div className="flex-1 min-w-0">
-                    <CategoryLegend
-                        data={SPENDING_DATA}
-                        activeIndex={activeIndex}
-                        onHover={setActiveIndex}
-                    />
-                </div>
-            </div>
+                    {/* Chart + Legend side by side */}
+                    <div className="flex flex-col lg:flex-row gap-6 items-start">
+                        <div className="w-full lg:w-[280px] shrink-0">
+                            {view === "donut" ? (
+                                <DonutChart
+                                    data={data}
+                                    activeIndex={activeIndex}
+                                    onHover={setActiveIndex}
+                                />
+                            ) : (
+                                <BarChartView
+                                    data={data}
+                                    activeIndex={activeIndex}
+                                    onHover={setActiveIndex}
+                                />
+                            )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                            <CategoryLegend
+                                data={data}
+                                activeIndex={activeIndex}
+                                onHover={setActiveIndex}
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
