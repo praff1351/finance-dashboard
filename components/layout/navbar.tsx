@@ -47,7 +47,7 @@ export const Navbar = () => {
                             aria-label="Account menu"
                         >
                             <Avatar className="h-9 w-9 cursor-pointer">
-                                <AvatarImage src={avatarUrl} alt="" />
+                                <AvatarImage src={avatarUrl ?? undefined} alt="" />
                                 <AvatarFallback>{userInitials(name, email)}</AvatarFallback>
                             </Avatar>
                         </button>
