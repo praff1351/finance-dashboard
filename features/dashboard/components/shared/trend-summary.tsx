@@ -12,7 +12,7 @@ export function TrendSummary({ data }: TrendSummaryProps) {
     const first = data[0].balance;
     const last = data[data.length - 1].balance;
     const diff = last - first;
-    const pct = ((diff / first) * 100).toFixed(2);
+    const pct = first === 0 ? "0.00": ((diff / first) * 100).toFixed(2);
     const positive = diff >= 0;
 
     const totalIncome = data.reduce((s, d) => s + d.income, 0);

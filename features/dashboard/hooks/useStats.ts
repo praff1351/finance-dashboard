@@ -47,7 +47,9 @@ export const useStats = () => {
 
     // --- Active Subscriptions ---
     const subscriptions = transactions.filter(
-      (t) => t.category === "Subscriptions" && t.type === "expense"
+      (t) =>
+        (t.category === "Subscriptions" || t.category === "Leisure") &&
+        t.type === "expense"
     ).length
 
     // --- Sparkline helper (last 8 months cumulative) ---
@@ -79,7 +81,8 @@ export const useStats = () => {
 
     // --- Change % helper ---
     const getChange = (current: number, previous: number) => {
-      if (previous === 0) return current > 0 ? "+100%" : "0%"
+      if (previous === 0 && current === 0) return "0%"
+      if (previous === 0) return "New"
       const pct = ((current - previous) / previous) * 100
       return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`
     }
@@ -119,7 +122,7 @@ export const useStats = () => {
         type: "balance",
         title: "Active Subscriptions",
         value: `${subscriptions}`,
-        change: "+0",
+        change: subscriptions > 0 ? `+${subscriptions}` : "0",
         positive: true,
         accent: "amber",
         sparkData: getSparkData("expense"),

@@ -14,6 +14,16 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Receipt,
   Download,
   Trash2,
@@ -22,13 +32,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 const TransactionsPage = () => {
   const { transactions, clearTransactions } = useTransactionsStore()
@@ -39,6 +42,7 @@ const TransactionsPage = () => {
   const [type, setType] = useState("all")
   const [category, setCategory] = useState("all")
   const [sortBy, setSortBy] = useState("date-desc")
+  const [showClearDialog, setShowClearDialog] = useState(false)
 
   // Derived filtered transactions
   const filteredTransactions = useMemo(() => {
@@ -72,17 +76,13 @@ const TransactionsPage = () => {
     setSearch("")
     setType("all")
     setCategory("all")
+    setSortBy("date-desc")
   }
 
   const handleClearAll = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete ALL transactions? This cannot be undone."
-      )
-    ) {
-      clearTransactions()
-      toast.success("All transactions cleared")
-    }
+    clearTransactions()
+    toast.success("All transactions cleared")
+    setShowClearDialog(false)
   }
 
   const [isExporting, setIsExporting] = useState(false)
@@ -108,6 +108,28 @@ const TransactionsPage = () => {
 
   return (
     <div className="min-h-screen space-y-6 bg-muted/30 p-4 sm:p-6 md:space-y-8 md:p-8">
+
+      {/* Clear All Confirmation Dialog */}
+      <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all transactions?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all your transactions. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearAll}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, clear all
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header Section */}
       <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
         <div className="space-y-1.5">
@@ -163,7 +185,6 @@ const TransactionsPage = () => {
 
       {/* Content Section */}
       <div className="grid gap-6">
-        
         <TransactionFilters
           search={search}
           onSearchChange={setSearch}
@@ -194,7 +215,7 @@ const TransactionsPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={handleClearAll}
+                onClick={() => setShowClearDialog(true)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Clear All
