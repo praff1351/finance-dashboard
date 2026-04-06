@@ -63,7 +63,14 @@ export function useInsights() {
     // --- Savings opportunity (subscriptions) ---
     const subscriptionCategories = ["Subscriptions", "Leisure"]
     const subscriptionTotal = expenses
-      .filter((t) => subscriptionCategories.includes(t.category))
+      .filter((t) => {
+        const d = new Date(t.date)
+        return (
+          subscriptionCategories.includes(t.category) &&
+          d.getMonth() === currentMonth &&
+          d.getFullYear() === currentYear
+        )
+      })
       .reduce((sum, t) => sum + t.amount, 0)
 
     const insights: Insight[] = [
